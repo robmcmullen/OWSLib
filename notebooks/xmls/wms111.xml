@@ -1,0 +1,107 @@
+<?xml version='1.0' encoding="ISO-8859-1" standalone="no" ?>
+<!DOCTYPE WMT_MS_Capabilities SYSTEM "http://schemas.opengis.net/wms/1.1.1/WMS_MS_Capabilities.dtd"
+ [
+ <!ELEMENT VendorSpecificCapabilities EMPTY>
+ ]>  <!-- end of DOCTYPE declaration -->
+
+<WMT_MS_Capabilities version="1.1.1">
+
+<!-- MapServer version 6.4.1 OUTPUT=PNG OUTPUT=JPEG OUTPUT=KML SUPPORTS=PROJ SUPPORTS=AGG SUPPORTS=FREETYPE SUPPORTS=CAIRO SUPPORTS=ICONV SUPPORTS=XMP SUPPORTS=FRIBIDI SUPPORTS=WMS_SERVER SUPPORTS=WMS_CLIENT SUPPORTS=WFS_SERVER SUPPORTS=WFS_CLIENT SUPPORTS=WCS_SERVER SUPPORTS=SOS_SERVER SUPPORTS=FASTCGI SUPPORTS=GEOS INPUT=JPEG INPUT=POSTGIS INPUT=OGR INPUT=GDAL INPUT=SHAPEFILE -->
+
+<Service>
+  <Name>OGC:WMS</Name>
+  <Title>Tropical Rainfall Measuring Mission (TRMM) Data from NASA Goddard Earth Sciences Data and Information Services Center (GES DISC)</Title>
+  <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_trmm?"/>
+  <ContactInformation>
+    <ContactPersonPrimary>
+<!-- WARNING: Mandatory metadata '..._contactperson' was missing in this context. -->
+      <ContactOrganization>Goddard Earth Sciences Data and Information Services Center</ContactOrganization>
+    </ContactPersonPrimary>
+      <ContactVoiceTelephone>301-614-5224</ContactVoiceTelephone>
+  <ContactElectronicMailAddress>help-disc@listserv.gsfc.nasa.gov</ContactElectronicMailAddress>
+  </ContactInformation>
+</Service>
+
+<Capability>
+  <Request>
+    <GetCapabilities>
+      <Format>application/vnd.ogc.wms_xml</Format>
+      <DCPType>
+        <HTTP>
+          <Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_trmm?"/></Get>
+          <Post><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_trmm?"/></Post>
+        </HTTP>
+      </DCPType>
+    </GetCapabilities>
+  </Request>
+  <Exception>
+    <Format>application/vnd.ogc.se_xml</Format>
+    <Format>application/vnd.ogc.se_inimage</Format>
+    <Format>application/vnd.ogc.se_blank</Format>
+  </Exception>
+  <VendorSpecificCapabilities />
+  <UserDefinedSymbolization SupportSLD="1" UserLayer="0" UserStyle="1" RemoteWFS="0"/>
+  <Layer>
+    <Name>GES_DISC_WMS_AG</Name>
+    <Title>Tropical Rainfall Measuring Mission (TRMM) Data from NASA Goddard Earth Sciences Data and Information Services Center (GES DISC)</Title>
+    <Abstract>GES_DISC_WMS_AG</Abstract>
+    <SRS>EPSG:4326</SRS>
+    <LatLonBoundingBox minx="-180" miny="-90" maxx="180" maxy="90" />
+    <BoundingBox SRS="EPSG:4326"
+                minx="-180" miny="-90" maxx="180" maxy="90" />
+    <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>TRMM_3A11_V7_MONTHLY_rain</Name>
+        <Title>TRMM_3A11_V7_MONTHLY_rain</Title>
+        <Abstract></Abstract>
+        <SRS>EPSG:4326</SRS>
+        <LatLonBoundingBox minx="-180" miny="-40" maxx="180" maxy="40" />
+        <BoundingBox SRS="EPSG:4326"
+                    minx="-180" miny="-40" maxx="180" maxy="40" />
+        <Dimension name="time" units="ISO8601"/>
+        <Extent name="time" default="2014-01-01" nearestValue="0">1997-12-01/2015-01-01</Extent>
+        <MetadataURL type="GCMD DIF">
+          <Format>text/html</Format>
+          <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://gcmd.gsfc.nasa.gov/getdif.htm?GES_DISC_TRMM_3A11_V7"/>
+        </MetadataURL>
+        <Style>
+          <Name>default</Name>
+          <Title>default</Title>
+          <LegendURL width="777" height="80">
+             <Format>image/png</Format>
+             <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_trmm?version=1.1.1&amp;service=WMS&amp;request=GetLegendGraphic&amp;layer=TRMM_3A11_V7_MONTHLY_rain&amp;format=image/png&amp;STYLE=default"/>
+          </LegendURL>
+        </Style>
+    </Layer>
+    <Layer queryable="0" opaque="0" cascaded="0">
+        <Name>TRMM_3A12_V7_MONTHLY_surfaceRain</Name>
+        <Title>TRMM_3A12_MONTHLY_surfaceRain</Title>
+        <Abstract></Abstract>
+        <KeywordList>
+            <Keyword>surface rain</Keyword>
+            <Keyword> cloud liquid water content</Keyword>
+            <Keyword> latent heat</Keyword>
+            <Keyword> NpixTotal</Keyword>
+            <Keyword> EOSDIS</Keyword>
+        </KeywordList>
+        <SRS>EPSG:4326</SRS>
+        <LatLonBoundingBox minx="-180" miny="-40" maxx="180" maxy="40" />
+        <BoundingBox SRS="EPSG:4326"
+                    minx="-180" miny="-40" maxx="180" maxy="40" />
+        <Dimension name="time" units="ISO8601"/>
+        <Extent name="time" default="2015-01-01" nearestValue="0">1997-12-01/2015-01-01</Extent>
+        <MetadataURL type="GCMD DIF">
+          <Format>text/html</Format>
+          <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://gcmd.gsfc.nasa.gov/getdif.htm?GES_DISC_TRMM_3A12_V7"/>
+        </MetadataURL>
+        <Style>
+          <Name>default</Name>
+          <Title>default</Title>
+          <LegendURL width="825" height="80">
+             <Format>image/png</Format>
+             <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_trmm?version=1.1.1&amp;service=WMS&amp;request=GetLegendGraphic&amp;layer=TRMM_3A12_V7_MONTHLY_surfaceRain&amp;format=image/png&amp;STYLE=default"/>
+          </LegendURL>
+        </Style>
+    </Layer>
+  </Layer>
+</Capability>
+</WMT_MS_Capabilities>
