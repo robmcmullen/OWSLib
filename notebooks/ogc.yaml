@@ -168,8 +168,42 @@
     - name: version
       type: string
       format:    
-  smethods:
+  methods:
     - name: GETCAPABILITIES
+    - name: DESCRIBEFEATURETYPE
+      params:
+        - name: typename
+          type: string
+          format:
+        - name: outputformat
+          type: string
+          format:
+    - name: GETFEATURE
+      params:
+        - name: typename
+          type: string
+          format:
+        - name: format
+          type: string
+          format:
+        - name: bbox
+          type: string
+          format: 'minx,miny,maxx,maxy'
+        - name: propertyname
+          type: string
+          format:
+        - name: featureversion
+          type: string
+          format:
+        - name: featureid
+          type: string
+          format:
+        - name: filter
+          type: string
+          format:
+        - name: maxfeatures
+          type: int
+          format:
 - name: WCS100
   common: 
     - name: service
