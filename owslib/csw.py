@@ -43,7 +43,7 @@ schema_location = '%s %s' % (namespaces['csw'], schema)
 
 class CatalogueServiceWeb:
     """ csw request class """
-    def __init__(self, url, lang='en-US', version='2.0.2', timeout=10, skip_caps=False,
+    def __init__(self, url, xml=None, lang='en-US', version='2.0.2', timeout=10, skip_caps=False,
                  username=None, password=None):
         """
 
@@ -73,14 +73,17 @@ class CatalogueServiceWeb:
         self.owscommon = ows.OwsCommon('1.0.0')
 
         if not skip_caps:  # process GetCapabilities
-            # construct request
+            if xml:
+                # load from the response to get _exml
+                self._parse_response(xml)
+            else:
+                # construct request
+                data = {'service': self.service, 'version': self.version, 'request': 'GetCapabilities'}
 
-            data = {'service': self.service, 'version': self.version, 'request': 'GetCapabilities'}
+                self.request = '%s%s' % (bind_url(self.url), urlencode(data))
 
-            self.request = '%s%s' % (bind_url(self.url), urlencode(data))
-    
-            self._invoke()
-    
+                self._invoke()
+
             if self.exceptionreport is None:
                 # ServiceIdentification
                 val = self._exml.find(util.nspath_eval('ows:ServiceIdentification', namespaces))
@@ -92,11 +95,11 @@ class CatalogueServiceWeb:
                 self.operations=[]
                 for elem in self._exml.findall(util.nspath_eval('ows:OperationsMetadata/ows:Operation', namespaces)):
                     self.operations.append(ows.OperationsMetadata(elem, self.owscommon.namespace))
-        
+
                 # FilterCapabilities
                 val = self._exml.find(util.nspath_eval('ogc:Filter_Capabilities', namespaces))
                 self.filters=fes.FilterCapabilities(val)
- 
+
     def describerecord(self, typename='csw:Record', format=outputformat):
         """
 
@@ -636,8 +639,15 @@ class CatalogueServiceWeb:
 
             self.response = util.http_post(xml_post_url, self.request, self.lang, self.timeout, self.username, self.password)
 
+        self._parse_response(self.response)
+        
+
+    def _parse_response(self, response):
+        '''parse in-memory xml string from a file obj or _invoke
+        '''
+
         # parse result see if it's XML
-        self._exml = etree.parse(StringIO.StringIO(self.response))
+        self._exml = etree.parse(StringIO.StringIO(response))
 
         # it's XML.  Attempt to decipher whether the XML response is CSW-ish """
         valid_xpaths = [
@@ -660,6 +670,7 @@ class CatalogueServiceWeb:
             raise ows.ExceptionReport(self._exml, self.owscommon.namespace)
         else:
             self.exceptionreport = None
+
 
 class CswRecord(object):
     """ Process csw:Record, csw:BriefRecord, csw:SummaryRecord """
