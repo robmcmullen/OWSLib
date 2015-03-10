@@ -3,47 +3,55 @@
 # Copyright (c) 2004, 2006 Sean C. Gillies
 # Copyright (c) 2007 STFC <http://www.stfc.ac.uk>
 #
-# Authors : 
+# Authors :
 #          Dominic Lowe <d.lowe@rl.ac.uk>
 #
 # Contact email: d.lowe@rl.ac.uk
 # =============================================================================
-
-##########NOTE: Does not conform to new interfaces yet #################
 
 from __future__ import (absolute_import, division, print_function)
 
 from .wcsBase import WCSBase, WCSCapabilitiesReader, ServiceException
 from owslib.util import openURL, testXMLValue
 from urllib import urlencode
-from urllib2 import urlopen
-from owslib.etree import etree
-import os, errno
-from owslib.coverage import wcsdecoder
 from owslib.crs import Crs
 
 import logging
 from owslib.util import log
 
-def ns(tag):
-    return '{http://www.opengis.net/wcs/1.1}'+tag
 
-class WebCoverageService_1_1_0(WCSBase):
+def ns(tags):
+    """go by the tag name, no namspaces for future/version-proofing
+    """
+    return '/'.join(['*[local-name()="%s"]' % t for t in tags.split('/') if t])
+
+
+def find(elem, xpath):
+    """assumes one element to return
+    """
+    return next(iter(elem.xpath(xpath)), None)
+
+
+def findall(elem, xpath):
+    return elem.xpath(xpath)
+
+
+class WebCoverageService_1_1_x(WCSBase):
     """Abstraction for OGC Web Coverage Service (WCS), version 1.1.0
     Implements IWebCoverageService.
     """
-    
+
     def __getitem__(self, name):
         ''' check contents dictionary to allow dict like access to service layers'''
         if name in self.__getattribute__('contents').keys():
             return self.__getattribute__('contents')[name]
         else:
             raise KeyError("No content named %s" % name)
-    
-    def __init__(self,url,xml, cookies):
-        self.version='1.1.0'
-        self.url = url   
-        self.cookies=cookies
+
+    def __init__(self, url, xml=None, cookies=None, version='1.1.0'):
+        self.version = version
+        self.url = url
+        self.cookies = cookies
         # initialize from saved capability document or access the server
         reader = WCSCapabilitiesReader(self.version)
         if xml:
@@ -52,77 +60,58 @@ class WebCoverageService_1_1_0(WCSBase):
             self._capabilities = reader.read(self.url)
 
         # check for exceptions
-        se = self._capabilities.find('{http://www.opengis.net/ows/1.1}Exception')
+        se = find(self._capabilities, ns("Exception"))
 
         if se is not None:
             err_message = str(se.text).strip()
             raise ServiceException(err_message, xml)
 
-        #build metadata objects:
-        
-        #serviceIdentification metadata
-        elem=self._capabilities.find('{http://www.opengis.net/wcs/1.1/ows}ServiceIdentification')
+        # build metadata objects:
+
+        # serviceIdentification metadata
+        elem = find(self._capabilities, ns('ServiceIdentification'))
         if elem is None:
-            elem=self._capabilities.find('{http://www.opengis.net/ows/1.1}ServiceIdentification')
-        self.identification=ServiceIdentification(elem)
-        
-        #serviceProvider
-        elem=self._capabilities.find('{http://www.opengis.net/ows/1.1}ServiceProvider')
-        self.provider=ServiceProvider(elem)
-                
-        #serviceOperations
+            elem = find(self._capabilities, ns('ServiceIdentification'))
+        self.identification = ServiceIdentification(elem)
+
+        # serviceProvider
+        elem = find(self._capabilities, ns('ServiceProvider'))
+        self.provider = ServiceProvider(elem)
+
+        # serviceOperations
         self.operations = []
-        for elem in self._capabilities.findall('{http://www.opengis.net/wcs/1.1/ows}OperationsMetadata/{http://www.opengis.net/wcs/1.1/ows}Operation/'):
+        for elem in findall(self._capabilities, ns('OperationsMetadata/Operation')):
             self.operations.append(Operation(elem))
-        
+
         # exceptions - ***********TO DO *************
-            self.exceptions = [f.text for f \
-                in self._capabilities.findall('Capability/Exception/Format')]
-              
+            self.exceptions = [f.text for f
+                               in findall(self._capabilities, ns('Capability/Exception/Format'))]
+
         # serviceContents: our assumption is that services use a top-level layer
         # as a metadata organizer, nothing more.
         self.contents = {}
-        top = self._capabilities.find('{http://www.opengis.net/wcs/1.1}Contents/{http://www.opengis.net/wcs/1.1}CoverageSummary')
-        for elem in self._capabilities.findall('{http://www.opengis.net/wcs/1.1}Contents/{http://www.opengis.net/wcs/1.1}CoverageSummary/{http://www.opengis.net/wcs/1.1}CoverageSummary'):                    
-            cm=ContentMetadata(elem, top, self)
-            self.contents[cm.id]=cm
-            
-        if self.contents=={}:
-            #non-hierarchical.
-            top=None
-            for elem in self._capabilities.findall('{http://www.opengis.net/wcs/1.1}Contents/{http://www.opengis.net/wcs/1.1}CoverageSummary'):     
-                cm=ContentMetadata(elem, top, self)
-                #make the describeCoverage requests to populate the supported formats/crs attributes
-                self.contents[cm.id]=cm
+        top = find(self._capabilities, ns('Contents/CoverageSummary'))
+        for elem in findall(self._capabilities, ns('Contents/CoverageSummary/CoverageSummary')):
+            cm = ContentMetadata(elem, top, self)
+            self.contents[cm.id] = cm
+
+        if self.contents == {}:
+            # non-hierarchical.
+            top = None
+            for elem in findall(self._capabilities, ns('Contents/CoverageSummary')):
+                cm = ContentMetadata(elem, top, self)
+                # make the describeCoverage requests to
+                # populate the supported formats/crs attributes
+                self.contents[cm.id] = cm
 
     def items(self):
         '''supports dict-like items() access'''
-        items=[]
+        items = []
         for item in self.contents:
-            items.append((item,self.contents[item]))
+            items.append((item, self.contents[item]))
         return items
-          
-    #TO DECIDE: Offer repackaging of coverageXML/Multipart MIME output?
-    #def getData(self, directory='outputdir', outputfile='coverage.nc',  **kwargs):
-        #u=self.getCoverageRequest(**kwargs)
-        ##create the directory if it doesn't exist:
-        #try:
-            #os.mkdir(directory)
-        #except OSError, e:
-            ## Ignore directory exists error
-            #if e.errno <> errno.EEXIST:
-                #raise          
-        ##elif wcs.version=='1.1.0':
-        ##Could be multipart mime or XML Coverages document, need to use the decoder...
-        #decoder=wcsdecoder.WCSDecoder(u)
-        #x=decoder.getCoverages()
-        #if type(x) is wcsdecoder.MpartMime:
-            #filenames=x.unpackToDir(directory)
-            ##print 'Files from 1.1.0 service written to %s directory'%(directory)
-        #else:
-            #filenames=x
-        #return filenames
-    
+
+
     #TO DO: Handle rest of the  WCS 1.1.0 keyword parameters e.g. GridCRS etc. 
     def getCoverage(self, identifier=None, bbox=None, time=None, format = None, store=False, rangesubset=None, gridbaseCRS=None, gridtype=None, gridCS=None, gridorigin=None, gridoffsets=None, method='Get',**kwargs):
         """Request and return a coverage from the WCS as a file-like object
@@ -186,59 +175,68 @@ class WebCoverageService_1_1_0(WCSBase):
         
         u=openURL(base_url, data, method, self.cookies)
         return u
-        
-        
+
     def getOperationByName(self, name):
         """Return a named operation item."""
         for item in self.operations:
             if item.name == name:
                 return item
         raise KeyError("No operation named %s" % name)
-        
+
+
 class Operation(object):
-    """Abstraction for operation metadata    
+    """Abstraction for operation metadata
     Implements IOperationMetadata.
     """
     def __init__(self, elem):
-        self.name = elem.get('name')       
-        self.formatOptions = [f.text for f in elem.findall('{http://www.opengis.net/wcs/1.1/ows}Parameter/{http://www.opengis.net/wcs/1.1/ows}AllowedValues/{http://www.opengis.net/wcs/1.1/ows}Value')]
+        self.name = elem.get('name')
+        self.formatOptions = [f.text for f in findall(elem, ns('Parameter/AllowedValues/Value'))]
         methods = []
-        for verb in elem.findall('{http://www.opengis.net/wcs/1.1/ows}DCP/{http://www.opengis.net/wcs/1.1/ows}HTTP/*'):
+        for verb in findall(elem, ns('DCP/HTTP/*')):
             url = verb.attrib['{http://www.w3.org/1999/xlink}href']
             methods.append((verb.tag, {'url': url}))
         self.methods = dict(methods)
 
+        # for the parameters
+        parameters = []
+        for parameter in findall(elem, ns('Parameter')):
+            parameters.append(
+                {
+                    parameter.attrib['name']: {'values': [i.text for i in findall(parameter,
+                                                          ns('AllowedValues/Value'))]}
+                }
+            )
+
+        self.parameters = parameters
+
+        # for the constraints, to match the parameter values
+        self.constraints = []
+        for constraint in findall(elem, ns('Constraint')):
+            # let's just make that an or?
+            cxp = ns('AllowedValues/Values') + ' | ' + ns('Values')
+            self.constraints.append({
+                constraint.attrib.get('name'): {
+                    "values": [i.text for i in findall(constraint, cxp)]
+                }
+            })
+
+
 class ServiceIdentification(object):
-    """ Abstraction for ServiceIdentification Metadata 
+    """ Abstraction for ServiceIdentification Metadata
     implements IServiceIdentificationMetadata"""
-    def __init__(self,elem):        
-        self.service="WCS"
-        self.version="1.1.0"
-        self.title=testXMLValue(elem.find('{http://www.opengis.net/ows}Title'))
-        if self.title is None:  #may have used the wcs ows namespace:
-            self.title=testXMLValue(elem.find('{http://www.opengis.net/wcs/1.1/ows}Title'))
-        
-        self.abstract=testXMLValue(elem.find('{http://www.opengis.net/ows}Abstract'))
-        if self.abstract is None:#may have used the wcs ows namespace:
-            self.abstract=testXMLValue(elem.find('{http://www.opengis.net/wcs/1.1/ows}Abstract'))
-        if elem.find('{http://www.opengis.net/ows}Abstract') is not None:
-            self.abstract=elem.find('{http://www.opengis.net/ows}Abstract').text
-        else:
-            self.abstract = None
-        self.keywords = [f.text for f in elem.findall('{http://www.opengis.net/ows}Keywords/{http://www.opengis.net/ows}Keyword')]
-        #self.link = elem.find('{http://www.opengis.net/wcs/1.1}Service/{http://www.opengis.net/wcs/1.1}OnlineResource').attrib.get('{http://www.w3.org/1999/xlink}href', '')
-               
-        if elem.find('{http://www.opengis.net/wcs/1.1/ows}Fees') is not None:            
-            self.fees=elem.find('{http://www.opengis.net/wcs/1.1/ows}Fees').text
-        else:
-            self.fees=None
-        
-        if  elem.find('{http://www.opengis.net/wcs/1.1/ows}AccessConstraints') is not None:
-            self.accessConstraints=elem.find('{http://www.opengis.net/wcs/1.1/ows}AccessConstraints').text
-        else:
-            self.accessConstraints=None
-       
-       
+    def __init__(self, elem):
+        self.service = "WCS"
+        # TODO: fix this
+        self.version = "1.1.0"
+        self.title = testXMLValue(find(elem, ns('Title')))
+        self.abstract = testXMLValue(find(elem, ns('Abstract')))
+        self.keywords = [f.text for f in findall(elem, ns('Keywords/Keyword'))]
+
+        self.fees = testXMLValue(find(elem, ns('Fees')))
+
+        self.accessConstraints = testXMLValue(find(elem, ns('AccessConstraints')))
+
+
 class ServiceProvider(object):
     """ Abstraction for ServiceProvider metadata 
     implements IServiceProviderMetadata """
@@ -252,47 +250,30 @@ class ServiceProvider(object):
         self.contact =ContactMetadata(elem)
         self.url=self.name # no obvious definitive place for url in wcs, repeat provider name?
 
+
 class ContactMetadata(object):
     ''' implements IContactMetadata'''
     def __init__(self, elem):
-        try:
-            self.name = elem.find('{http://www.opengis.net/ows}ServiceContact/{http://www.opengis.net/ows}IndividualName').text
-        except AttributeError:
-            self.name = None
-        
-        try:
-            self.organization=elem.find('{http://www.opengis.net/ows}ProviderName').text 
-        except AttributeError:
-            self.organization = None
-        
-        try:
-            self.address = elem.find('{http://www.opengis.net/ows}ServiceContact/{http://www.opengis.net/ows}ContactInfo/{http://www.opengis.net/ows}Address/{http://www.opengis.net/ows}DeliveryPoint').text
-        except AttributeError:
-            self.address = None
-        try:
-            self.city=  elem.find('{http://www.opengis.net/ows}ServiceContact/{http://www.opengis.net/ows}ContactInfo/{http://www.opengis.net/ows}Address/{http://www.opengis.net/ows}City').text
-        except AttributeError:
-            self.city = None
-        
-        try:
-            self.region= elem.find('{http://www.opengis.net/ows}ServiceContact/{http://www.opengis.net/ows}ContactInfo/{http://www.opengis.net/ows}Address/{http://www.opengis.net/ows}AdministrativeArea').text
-        except AttributeError:
-            self.region = None
-        
-        try:
-            self.postcode= elem.find('{http://www.opengis.net/ows}ServiceContact/{http://www.opengis.net/ows}ContactInfo/{http://www.opengis.net/ows}Address/{http://www.opengis.net/ows}PostalCode').text
-        except AttributeError:
-            self.postcode = None
-        
-        try:
-            self.country= elem.find('{http://www.opengis.net/ows}ServiceContact/{http://www.opengis.net/ows}ContactInfo/{http://www.opengis.net/ows}Address/{http://www.opengis.net/ows}Country').text
-        except AttributeError:
-            self.country = None
-        
-        try:
-            self.email =            elem.find('{http://www.opengis.net/ows}ServiceContact/{http://www.opengis.net/ows}ContactInfo/{http://www.opengis.net/ows}Address/{http://www.opengis.net/ows}ElectronicMailAddress').text
-        except AttributeError:
-            self.email = None
+        self.name = testXMLValue(find(elem, ns('ServiceContact/IndividualName')))
+
+        self.organization = testXMLValue(find(elem, ns('ProviderName')))
+
+        self.address = testXMLValue(find(elem,
+                                    ns('ServiceContact/ContactInfo/Address/DeliveryPoint')))
+
+        self.city = testXMLValue(find(elem, ns('ServiceContact/ContactInfo/Address/City')))
+
+        self.region = testXMLValue(find(elem,
+                                   ns('ServiceContact/ContactInfo/Address/AdministrativeArea')))
+
+        self.postcode = testXMLValue(find(elem,
+                                     ns('ServiceContact/ContactInfo/Address/PostalCode')))
+
+        self.country = testXMLValue(find(elem, ns('ServiceContact/ContactInfo/Address/Country')))
+
+        self.email = testXMLValue(find(elem,
+                                  ns('ServiceContact/ContactInfo/Address/ElectronicMailAddress')))
+
 
 class ContentMetadata(object):
     """Abstraction for WCS ContentMetadata
@@ -300,7 +281,7 @@ class ContentMetadata(object):
     """
     def __init__(self, elem, parent, service):
         """Initialize."""
-        #TODO - examine the parent for bounding box info.
+        # TODO - examine the parent for bounding box info.
         
         self._service=service
         self._elem=elem

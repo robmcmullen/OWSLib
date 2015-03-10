@@ -123,6 +123,7 @@ class WCSCapabilitiesReader(object):
             raise ValueError("String must be of type string, not %s" % type(st))
         return etree.fromstring(st)
 
+
 class DescribeCoverageReader(object):
     """Read and parses WCS DescribeCoverage document into a lxml.etree infoset
     """

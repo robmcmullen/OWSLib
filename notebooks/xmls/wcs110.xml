@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Capabilities xmlns="http://www.opengis.net/wcs/1.1"
+ xmlns:ows="http://www.opengis.net/ows"
+ xmlns:owcs="http://www.opengis.net/wcs/1.1/ows"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xsi:schemaLocation="http://www.opengis.net/wcs/1.1 http://schemas.opengis.net/wcs/1.1/wcsGetCapabilities.xsd http://www.opengis.net/wcs/1.1/ows http://schemas.opengis.net/ows/1.1.0/owsDataIdentification.xsd" version="1.1.0">
+  <owcs:ServiceIdentification>
+    <ows:Title>DataAtlas_CMECS_Salinity_Winter</ows:Title>
+  <owcs:ServiceType>WCS</owcs:ServiceType>
+  <owcs:ServiceTypeVersion>1.0.0</owcs:ServiceTypeVersion>
+  <owcs:ServiceTypeVersion>1.1.0</owcs:ServiceTypeVersion>
+  <owcs:ServiceTypeVersion>1.1.1</owcs:ServiceTypeVersion>
+  <owcs:ServiceTypeVersion>1.1.2</owcs:ServiceTypeVersion>
+  <owcs:Fees>NONE</owcs:Fees>
+  <owcs:AccessConstraints>None</owcs:AccessConstraints>
+  </owcs:ServiceIdentification>
+  <ows:ServiceProvider>
+    <ows:ProviderName></ows:ProviderName>
+    <ows:ServiceContact>
+      <ows:ContactInfo>
+        <ows:Phone>
+        </ows:Phone>
+        <ows:Address>
+        </ows:Address>
+        <ows:OnlineResource xlink:href="http://www.ncddc.noaa.gov/arcgis/services/DataAtlas/CMECS_Salinity_Winter/MapServer/WCSServer"/>
+      </ows:ContactInfo>
+    </ows:ServiceContact>
+  </ows:ServiceProvider>
+  <owcs:OperationsMetadata>
+    <owcs:Operation name="GetCapabilities">
+      <owcs:DCP>
+        <owcs:HTTP>
+          <owcs:Get xlink:href="http://www.ncddc.noaa.gov/arcgis/services/DataAtlas/CMECS_Salinity_Winter/MapServer/WCSServer"/>
+          <owcs:Post xlink:href="http://www.ncddc.noaa.gov/arcgis/services/DataAtlas/CMECS_Salinity_Winter/MapServer/WCSServer"/>
+        </owcs:HTTP>
+      </owcs:DCP>
+      <owcs:Parameter name="service">
+        <owcs:AllowedValues>
+          <owcs:Value>WCS</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+      <owcs:Parameter name="AcceptVersions">
+        <owcs:AllowedValues>
+          <owcs:Value>1.0.0</owcs:Value>
+          <owcs:Value>1.1.0</owcs:Value>
+          <owcs:Value>1.1.1</owcs:Value>
+          <owcs:Value>1.1.2</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+    </owcs:Operation>
+    <owcs:Operation name="DescribeCoverage">
+      <owcs:DCP>
+        <owcs:HTTP>
+          <owcs:Get xlink:href="http://www.ncddc.noaa.gov/arcgis/services/DataAtlas/CMECS_Salinity_Winter/MapServer/WCSServer"/>
+          <owcs:Post xlink:href="http://www.ncddc.noaa.gov/arcgis/services/DataAtlas/CMECS_Salinity_Winter/MapServer/WCSServer"/>
+        </owcs:HTTP>
+      </owcs:DCP>
+      <owcs:Parameter name="service">
+        <owcs:AllowedValues>
+          <owcs:Value>WCS</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+      <owcs:Parameter name="version">
+        <owcs:AllowedValues>
+          <owcs:Value>1.0.0</owcs:Value>
+          <owcs:Value>1.1.0</owcs:Value>
+          <owcs:Value>1.1.1</owcs:Value>
+          <owcs:Value>1.1.2</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+      <owcs:Parameter name="Identifier">
+        <owcs:AllowedValues>
+          <owcs:Value>1</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+    </owcs:Operation>
+    <owcs:Operation name="GetCoverage">
+      <owcs:DCP>
+        <owcs:HTTP>
+          <owcs:Get xlink:href="http://www.ncddc.noaa.gov/arcgis/services/DataAtlas/CMECS_Salinity_Winter/MapServer/WCSServer"/>
+          <owcs:Post xlink:href="http://www.ncddc.noaa.gov/arcgis/services/DataAtlas/CMECS_Salinity_Winter/MapServer/WCSServer"/>
+        </owcs:HTTP>
+      </owcs:DCP>
+      <owcs:Parameter name="service">
+        <owcs:AllowedValues>
+          <owcs:Value>WCS</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+      <owcs:Parameter name="version">
+        <owcs:AllowedValues>
+          <owcs:Value>1.0.0</owcs:Value>
+          <owcs:Value>1.1.0</owcs:Value>
+          <owcs:Value>1.1.1</owcs:Value>
+          <owcs:Value>1.1.2</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+      <owcs:Parameter name="Identifier">
+        <owcs:AllowedValues>
+          <owcs:Value>1</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+      <owcs:Parameter name="InterpolationType">
+        <owcs:AllowedValues>
+          <owcs:Value>nearest</owcs:Value>
+          <owcs:Value>bilinear</owcs:Value>
+          <owcs:Value>bicubic</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+      <owcs:Parameter name="format">
+        <owcs:AllowedValues>
+          <owcs:Value>image/GeoTIFF</owcs:Value>
+          <owcs:Value>image/NITF</owcs:Value>
+          <owcs:Value>image/JPEG</owcs:Value>
+          <owcs:Value>image/PNG</owcs:Value>
+          <owcs:Value>image/JPEG2000</owcs:Value>
+          <owcs:Value>image/HDF</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+      <owcs:Parameter name="store">
+        <owcs:AllowedValues>
+          <owcs:Value>False</owcs:Value>
+          <owcs:Value>True</owcs:Value>
+        </owcs:AllowedValues>
+      </owcs:Parameter>
+    </owcs:Operation>
+  </owcs:OperationsMetadata>
+  <Contents>
+    <CoverageSummary>
+      <ows:Title>Winter_1</ows:Title>
+      <ows:Abstract>Five year mean for winter, as estimated from MODIS/Aqua satellite imagery, for sea-surface salinity in northern Gulf of Mexico.  The ocean color imagery from the MODIS-Aqua satellite from January 2005 - December 2009 was used to estimate sea-surface salinity.  This is based on the empirical relationship between color dissolved organic matter (CDOM) absorption and salinity.  In situ data from the Southeast Area Monitoring and Assessment Program (SEAMAP) program were overlaid on the modeled data. Both the satellite data and the SEAMAP data were then reclassified into Coastal and Marine Ecological Classification Standard (CMECS) Water Column component categories.  The CMECS is a catalog of terms that provides a means for classifying ecological units using a simple, standard format and common terminology. CMECS offers a way to organize and interpret data about the marine environment, and it provides a common platform for inter-relating data.</ows:Abstract>
+      <ows:WGS84BoundingBox>
+        <ows:LowerCorner>-98.698757369485847 17.655426701996923</ows:LowerCorner>
+        <ows:UpperCorner>-79.108159753549089 34.222930882667605</ows:UpperCorner>
+      </ows:WGS84BoundingBox>
+      <Identifier>1</Identifier>
+    </CoverageSummary>
+    <SupportedCRS>urn:ogc:def:crs:EPSG::4326</SupportedCRS>
+    <SupportedCRS>urn:ogc:def:crs:EPSG::4269</SupportedCRS>
+    <SupportedFormat>image/GeoTIFF</SupportedFormat>
+    <SupportedFormat>image/NITF</SupportedFormat>
+    <SupportedFormat>image/JPEG</SupportedFormat>
+    <SupportedFormat>image/PNG</SupportedFormat>
+    <SupportedFormat>image/JPEG2000</SupportedFormat>
+    <SupportedFormat>image/HDF</SupportedFormat>
+  </Contents>
+</Capabilities>
