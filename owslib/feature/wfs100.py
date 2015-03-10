@@ -338,7 +338,8 @@ class OperationMetadata:
         """."""
         self.name = xmltag_split(elem.tag)
         # formatOptions
-        self.formatOptions = [xmltag_split(f.tag) for f in elem.findall(nspath('ResultFormat/*'))]
+        self.formatOptions = [xmltag_split(f.tag) for f 
+                        in elem.findall(nspath('ResultFormat/*')) + elem.findall(nspath('SchemaDescriptionLanguage/*'))]
         self.methods = []
         for verb in elem.findall(nspath('DCPType/HTTP/*')):
             url = verb.attrib['onlineResource']
