@@ -12,7 +12,7 @@
 from __future__ import (absolute_import, division, print_function)
 
 from .wcsBase import WCSBase, WCSCapabilitiesReader, ServiceException
-from owslib.util import openURL, testXMLValue
+from owslib.util import openURL, testXMLValue, xmltag_split
 from urllib import urlencode
 from owslib.crs import Crs
 
@@ -23,7 +23,8 @@ from owslib.util import log
 def ns(tags):
     """go by the tag name, no namspaces for future/version-proofing
     """
-    return '/'.join(['*[local-name()="%s"]' % t for t in tags.split('/') if t])
+    return '/'.join(['*[local-name()="%s"]' % t if t not in ['*', '..'] else t
+                     for t in tags.split('/') if t])
 
 
 def find(elem, xpath):
@@ -190,12 +191,32 @@ class Operation(object):
     """
     def __init__(self, elem):
         self.name = elem.get('name')
-        self.formatOptions = [f.text for f in findall(elem, ns('Parameter/AllowedValues/Value'))]
+        # this is not valid
+        # self.formatOptions = [f.text for f in findall(elem, ns('Parameter/AllowedValues/Value'))]
+        self.formatOptions = None
+
+        # for the constraints, to match the parameter values
+        # and these are at the parent OperationMetadata level
+        constraints = []
+        for constraint in findall(elem, ns('../Constraint')):
+            # let's just make that an or?
+            cxp = ns('AllowedValues/Value') + ' | ' + ns('Value')
+            constraints.append({
+                constraint.attrib.get('name'): {
+                    "values": [i.text for i in findall(constraint, cxp)]
+                }
+            })
+        self.constraints = constraints
+
         methods = []
         for verb in findall(elem, ns('DCP/HTTP/*')):
-            url = verb.attrib['{http://www.w3.org/1999/xlink}href']
-            methods.append((verb.tag, {'url': url}))
-        self.methods = dict(methods)
+            methods.append(
+                {
+                    "type": xmltag_split(verb.tag),
+                    "url": verb.attrib['{http://www.w3.org/1999/xlink}href']
+                }
+            )
+        self.methods = methods
 
         # for the parameters
         parameters = []
@@ -208,17 +229,6 @@ class Operation(object):
             )
 
         self.parameters = parameters
-
-        # for the constraints, to match the parameter values
-        self.constraints = []
-        for constraint in findall(elem, ns('Constraint')):
-            # let's just make that an or?
-            cxp = ns('AllowedValues/Values') + ' | ' + ns('Values')
-            self.constraints.append({
-                constraint.attrib.get('name'): {
-                    "values": [i.text for i in findall(constraint, cxp)]
-                }
-            })
 
 
 class ServiceIdentification(object):
