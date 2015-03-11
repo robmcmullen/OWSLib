@@ -242,7 +242,7 @@ class ServiceIdentification(object):
 
         self.fees = testXMLValue(find(elem, ns('Fees')))
 
-        self.accessConstraints = testXMLValue(find(elem, ns('AccessConstraints')))
+        self.accessconstraints = testXMLValue(find(elem, ns('AccessConstraints')))
 
 
 class ServiceProvider(object):

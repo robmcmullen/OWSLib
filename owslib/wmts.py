@@ -190,7 +190,7 @@ class WebMapTileService(object):
 
         # serviceProvider metadata
         serviceprov = self._capabilities.find(_SERVICE_PROVIDER_TAG)
-        self.provider = ServiceProvider(serviceprov)
+        self.provider = ServiceProvider(serviceprov) if serviceprov is not None else None
 
         # serviceOperations metadata
         self.operations = []

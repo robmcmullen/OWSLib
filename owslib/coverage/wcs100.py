@@ -201,7 +201,7 @@ class ServiceIdentification(object):
         self.keywords = [f.text for f in elem.findall(ns('keywords')+'/'+ns('keyword'))]
         #note: differs from 'rights' in interface
         self.fees=elem.find(ns('fees')).text
-        self.accessConstraints=elem.find(ns('accessConstraints')).text
+        self.accessconstraints=elem.find(ns('accessConstraints')).text
        
 class ServiceProvider(object):
     """ Abstraction for WCS ResponsibleParty 

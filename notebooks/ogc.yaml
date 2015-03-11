@@ -290,7 +290,7 @@
       format:    
   methods:
     - name: GETCAPABILITIES
-    
+
 - name: WCS112
   common: 
     - name: service
@@ -306,6 +306,20 @@
     - name: GETCAPABILITIES
 
 - name: CSW202
+  common: 
+    - name: service
+      type: string
+      format: 
+    - name: request
+      type: string
+      format:
+    - name: version
+      type: string
+      format:    
+  methods:
+    - name: GETCAPABILITIES
+
+- name: SOS100
   common: 
     - name: service
       type: string
