@@ -196,7 +196,7 @@ class Operation(object):
         self.name = elem.get('name')
         # this is not valid
         # self.formatOptions = [f.text for f in findall(elem, ns('Parameter/AllowedValues/Value'))]
-        self.formatOptions = None
+        self.formatOptions = []
 
         # for the constraints, to match the parameter values
         # and these are at the parent OperationMetadata level
@@ -222,15 +222,10 @@ class Operation(object):
         self.methods = methods
 
         # for the parameters
-        parameters = []
+        parameters = {}
         for parameter in findall(elem, ns('Parameter')):
-            parameters.append(
-                {
-                    parameter.attrib['name']: {'values': [i.text for i in findall(parameter,
-                                                          ns('AllowedValues/Value'))]}
-                }
-            )
-
+            parameters[parameter.attrib['name']] = {'values': [i.text for i in findall(parameter,
+                                                    ns('AllowedValues/Value'))]}
         self.parameters = parameters
 
 
