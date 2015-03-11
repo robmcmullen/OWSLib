@@ -23,7 +23,7 @@ from owslib.util import log
 def ns(tags):
     """go by the tag name, no namspaces for future/version-proofing
     """
-    return '/'.join(['*[local-name()="%s"]' % t if t not in ['*', '..'] else t
+    return '/'.join(['*[local-name()="%s"]' % t if t not in ['*', '..', '.'] else t
                      for t in tags.split('/') if t])
 
 
@@ -91,19 +91,22 @@ class WebCoverageService_1_1_x(WCSBase):
         # serviceContents: our assumption is that services use a top-level layer
         # as a metadata organizer, nothing more.
         self.contents = {}
-        top = find(self._capabilities, ns('Contents/CoverageSummary'))
-        for elem in findall(self._capabilities, ns('Contents/CoverageSummary/CoverageSummary')):
-            cm = ContentMetadata(elem, top, self)
+        for elem in findall(self._capabilities, '/' + ns('*/Contents') + '//' + ns('CoverageSummary')):
+            cm = ContentMetadata(elem, None, self)
             self.contents[cm.id] = cm
+        # top = find(self._capabilities, ns('Contents/CoverageSummary'))
+        # for elem in findall(self._capabilities, ns('Contents/CoverageSummary/CoverageSummary')):
+        #     cm = ContentMetadata(elem, top, self)
+        #     self.contents[cm.id] = cm
 
-        if self.contents == {}:
-            # non-hierarchical.
-            top = None
-            for elem in findall(self._capabilities, ns('Contents/CoverageSummary')):
-                cm = ContentMetadata(elem, top, self)
-                # make the describeCoverage requests to
-                # populate the supported formats/crs attributes
-                self.contents[cm.id] = cm
+        # if self.contents == {}:
+        #     # non-hierarchical.
+        #     top = None
+        #     for elem in findall(self._capabilities, ns('Contents/CoverageSummary')):
+        #         cm = ContentMetadata(elem, top, self)
+        #         # make the describeCoverage requests to
+        #         # populate the supported formats/crs attributes
+        #         self.contents[cm.id] = cm
 
     def items(self):
         '''supports dict-like items() access'''
@@ -290,71 +293,73 @@ class ContentMetadata(object):
     Implements IContentMetadata
     """
     def __init__(self, elem, parent, service):
-        """Initialize."""
+        """Initialize.
+
+        CoverageSummary elements can be nested more than once and still be valid
+        as XML. If the leaf does not have an identifier, the parent identifier
+        should be used. SupportedCRS is the union of parent/child CRS values.
+
+        There is nothing in the spec about inherited keyword sets. And no Description
+        element?
+        """
         # TODO - examine the parent for bounding box info.
-        
-        self._service=service
-        self._elem=elem
-        self._parent=parent
-        self.id=self._checkChildAndParent('{http://www.opengis.net/wcs/1.1}Identifier')
-        self.description =self._checkChildAndParent('{http://www.opengis.net/wcs/1.1}Description')           
-        self.title =self._checkChildAndParent('{http://www.opengis.net/ows}Title')
-        self.abstract =self._checkChildAndParent('{http://www.opengis.net/ows}Abstract')
-        
-        #keywords.
-        self.keywords=[]
-        for kw in elem.findall('{http://www.opengis.net/ows}Keywords/{http://www.opengis.net/ows}Keyword'):
-            if kw is not None:
-                self.keywords.append(kw.text)
-        
-        #also inherit any keywords from parent coverage summary (if there is one)
-        if parent is not None:
-            for kw in parent.findall('{http://www.opengis.net/ows}Keywords/{http://www.opengis.net/ows}Keyword'):
-                if kw is not None:
-                    self.keywords.append(kw.text)
-            
-        self.boundingBox=None #needed for iContentMetadata harmonisation
+
+        self._service = service
+        self._elem = elem
+
+        # find returns the first item so we should be good here
+        self.id = testXMLValue(find(elem, '*[local-name()="Identifier"] | ../*[local-name()="Identifier"]'))
+        self.abstract = testXMLValue(find(elem, '*[local-name()="Abstract"] | ../*[local-name()="Abstract"]'))
+        self.title = testXMLValue(find(elem, '*[local-name()="Title"] | ../*[local-name()="Title"]'))
+
+        # get the ancestors related to nested CoverageSummary elems and the local keywords
+        tags = [elem.tag] + [e.tag for e in elem.iterancestors() if e.tag in ['CoverageSummary']]
+        xpaths = ['/'.join(['..'] * i + ['*[local-name()="Keywords"]', '*[local-name()="Keyword"]'])
+                  for i in xrange(len(tags))]
+        self.keywords = [k.text for k in findall(elem, ' | '.join(xpaths))] if xpaths else []
+
+        self.boundingBox = None  # needed for iContentMetadata harmonisation
         self.boundingBoxWGS84 = None
-        b = elem.find('{http://www.opengis.net/ows}WGS84BoundingBox')
+        b = find(elem, ns('WGS84BoundingBox'))
         if b is not None:
-            lc=b.find('{http://www.opengis.net/ows}LowerCorner').text
-            uc=b.find('{http://www.opengis.net/ows}UpperCorner').text
+            lc = find(b, ns('LowerCorner')).text
+            uc = find(b, ns('UpperCorner')).text
             self.boundingBoxWGS84 = (
-                    float(lc.split()[0]),float(lc.split()[1]),
-                    float(uc.split()[0]), float(uc.split()[1]),
-                    )
-                
-        # bboxes - other CRS 
+                float(lc.split()[0]), float(lc.split()[1]),
+                float(uc.split()[0]), float(uc.split()[1]),
+            )
+
+        # bboxes - other CRS
         self.boundingboxes = []
-        for bbox in elem.findall('{http://www.opengis.net/ows}BoundingBox'):
+        for bbox in findall(elem, ns('BoundingBox')):
             if bbox is not None:
                 try:
-                    lc=b.find('{http://www.opengis.net/ows}LowerCorner').text
-                    uc=b.find('{http://www.opengis.net/ows}UpperCorner').text
-                    boundingBox =  (
-                            float(lc.split()[0]),float(lc.split()[1]),
-                            float(uc.split()[0]), float(uc.split()[1]),
-                            b.attrib['crs'])
+                    lc = find(b, ns('LowerCorner')).text
+                    uc = find(b, ns('UpperCorner')).text
+                    boundingBox = (
+                        float(lc.split()[0]), float(lc.split()[1]),
+                        float(uc.split()[0]), float(uc.split()[1]),
+                        b.attrib['crs']
+                    )
                     self.boundingboxes.append(boundingBox)
                 except:
-                     pass
+                    pass
 
-        #others not used but needed for iContentMetadata harmonisation
-        self.styles=None
-        self.crsOptions=None
-                
-        #SupportedCRS
-        self.supportedCRS=[]
+        # others not used but needed for iContentMetadata harmonisation
+        self.styles = None
+        self.crsOptions = None
+
+        # SupportedCRS
+        self.supportedCRS = []
         for crs in elem.findall('{http://www.opengis.net/wcs/1.1}SupportedCRS'):
             self.supportedCRS.append(Crs(crs.text))
-            
-            
-        #SupportedFormats         
-        self.supportedFormats=[]
-        for format in elem.findall('{http://www.opengis.net/wcs/1.1}SupportedFormat'):
+
+        # SupportedFormats
+        self.supportedFormats = []
+        for format in findall(elem, ns('SupportedFormat')):
             self.supportedFormats.append(format.text)
-            
-    #grid is either a gml:Grid or a gml:RectifiedGrid if supplied as part of the DescribeCoverage response.
+
+    # grid is either a gml:Grid or a gml:RectifiedGrid if supplied as part of the DescribeCoverage response.
     def _getGrid(self):
         grid=None
         #TODO- convert this to 1.1 from 1.0
@@ -367,31 +372,18 @@ class ContentMetadata(object):
             #gridelem=self.descCov.find(ns('CoverageOffering/')+ns('domainSet/')+ns('spatialDomain/')+'{http://www.opengis.net/gml}Grid')
             #grid=Grid(gridelem)
         return grid
-    grid=property(_getGrid, None)
-        
-        
-        
-    #time limits/postions require a describeCoverage request therefore only resolve when requested
+    grid = property(_getGrid, None)
+
+    # time limits/postions require a describeCoverage request therefore only resolve when requested
     def _getTimeLimits(self):
-         timelimits=[]
-         for elem in self._service.getDescribeCoverage(self.id).findall(ns('CoverageDescription/')+ns('Domain/')+ns('TemporalDomain/')+ns('TimePeriod/')):
-             subelems=elem.getchildren()
-             timelimits=[subelems[0].text,subelems[1].text]
-         return timelimits
-    timelimits=property(_getTimeLimits, None)
-    
-    #TODO timepositions property
+        timelimits = []
+        for elem in findall(self._service.getDescribeCoverage(self.id), ns('CoverageDescription/Domain/TemporalDomain/TimePeriod')):
+            subelems = elem.getchildren()
+            timelimits = [subelems[0].text, subelems[1].text]
+        return timelimits
+    timelimits = property(_getTimeLimits, None)
+
+    # TODO timepositions property
     def _getTimePositions(self):
         return []
-    timepositions=property(_getTimePositions, None)
-    
-    def _checkChildAndParent(self, path):
-        ''' checks child coverage  summary, and if item not found checks higher level coverage summary'''
-        try:
-            value = self._elem.find(path).text
-        except:
-            try:
-                value = self._parent.find(path).text
-            except:
-                value = None
-        return value  
+    timepositions = property(_getTimePositions, None)
