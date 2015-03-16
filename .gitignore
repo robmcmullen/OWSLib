@@ -10,3 +10,5 @@ pytest-*
 pytest_cov-*
 .tox
 .ipynb_*
+notebooks/ogc_docs
+notebooks/ogc_service_descriptions

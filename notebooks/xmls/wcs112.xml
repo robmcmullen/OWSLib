@@ -11,6 +11,13 @@
         <ows:ServiceTypeVersion>1.1.0</ows:ServiceTypeVersion>
         <ows:ServiceTypeVersion>1.1.1</ows:ServiceTypeVersion>
         <ows:ServiceTypeVersion>1.1.2</ows:ServiceTypeVersion>
+        <ows:Keywords>
+            <ows:Keyword>soil; water; air</ows:Keyword>
+            <ows:Keyword>loamy_silt, loam</ows:Keyword>
+            <ows:Keyword>silty clays > horizon | component</ows:Keyword>
+            <ows:Keyword>somebody to shout about ssurgo, and no more love for statsgo</ows:Keyword>
+            <ows:Keyword>inorganic+carbon:the other thing</ows:Keyword>
+        </ows:Keywords>
         <ows:Fees>NONE</ows:Fees>
         <ows:AccessConstraints>None</ows:AccessConstraints>
     </ows:ServiceIdentification>
