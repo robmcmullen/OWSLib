@@ -30,10 +30,14 @@ def ns(tags):
 def find(elem, xpath):
     """assumes one element to return
     """
+    if elem is None:
+        return None
     return next(iter(elem.xpath(xpath)), None)
 
 
 def findall(elem, xpath):
+    if elem is None:
+        return None
     return elem.xpath(xpath)
 
 
