@@ -1,5 +1,21 @@
-OWSLib
-======
+(B-Cube) OWSLib
+===============
+
+Fork of the OWSLib project for improved GetCapabilities harmonization in 
+support of the B-Cube service response harvesting project. 
+
+This work is ongoing. Because of the focus on response parsing, changes
+made to this fork, including but not limited to expanded version support,
+may not adequately support data requests. So a WCS GetCapabilities 1.1.2
+request should function but a GetCoverage request may not. 
+
+Not all required changes have been implemented - this is unlikely to
+install correctly at this time. 
+
+
+
+Original Documentation
+======================
 
 OWSLib is a Python package for client programming with Open Geospatial
 Consortium (OGC) web service (hence OWS) interface standards, and their

@@ -1,6 +1,16 @@
 Changes
 =======
 
+0.7 (unreleased, see bcube-mods branch) (2015-04-13)
+---------------
+
+- WMS 1.3.0 support
+- WCS 1.x.x support
+- Capabilities harmonization 
+ - Capabilities Content harmonization
+ - Capture of all bounding boxes and supported SRS/CRS options 
+
+
 0.7 (2013-02-18)
 ---------------
 
