@@ -10,7 +10,7 @@ from __future__ import (absolute_import, division, print_function)
 def patch_well_known_namespaces(etree_module):
 
     import warnings
-    from owslib.namespaces import Namespaces
+    from bcube_owslib.namespaces import Namespaces
     ns = Namespaces()
 
     """Monkey patches the etree module to add some well-known namespaces."""
