@@ -143,6 +143,9 @@ class DescribeCoverageReader(object):
         n = Namespaces()
         self.namespaces = n.get_namespaces(['wcs', 'gml'])
 
+        self.read('')
+        self.parse_description()
+
     def descCov_url(self, service_url):
         """Return a describe coverage url
         @type service_url: string
@@ -196,7 +199,7 @@ class DescribeCoverageReader(object):
                 req.add_header('Cookie', self.cookies)
             u = urlopen(req, timeout=timeout)
             self.xml = u.read()
-        return etree.fromstring(self.xml)
+        self.xml = etree.fromstring(self.xml)
 
     def parse_description(self):
         '''
@@ -236,7 +239,7 @@ class CoverageOffering(object):
                 min_pos, max_pos, srs_urn = self._get_envelope(envelope)
 
                 self.spatial_domain['envelope'] = {
-                    "min_pos": min_pos, 
+                    "min_pos": min_pos,
                     "max_pos": max_pos,
                     "srs_urn": srs_urn
                 }
