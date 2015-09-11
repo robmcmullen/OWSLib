@@ -57,6 +57,9 @@ class WebMapService_1_3_0(object):
         else:  # read from server
             self._capabilities = reader.read(self.url, timeout=self.timeout)
 
+        print("1.3.0 CAPABILITIES OF", self.url)
+        print("  ",self._capabilities)
+
         # avoid building capabilities metadata if the
         # response is a ServiceExceptionReport
         se = self._capabilities.find('ServiceException')
@@ -257,7 +260,14 @@ class WebMapService_1_3_0(object):
             for kw in kwargs:
                 request[kw] = kwargs[kw]
 
+        if True:
+            d = dict()
+            for k,v in request.iteritems():
+                d[k.upper()] = v
+            request = d
+
         data = urlencode(request)
+        print ("URL: ", data)
 
         u = openURL(base_url,
                     data,

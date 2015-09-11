@@ -39,14 +39,14 @@ class WMSCapabilitiesReader(object):
         if service_url.find('?') != -1:
             qs = cgi.parse_qsl(service_url.split('?')[1])
 
-        params = [x[0] for x in qs]
+        params = [x[0].lower() for x in qs]
 
         if 'service' not in params:
-            qs.append(('service', 'WMS'))
+            qs.append(('SERVICE', 'WMS'))
         if 'request' not in params:
-            qs.append(('request', 'GetCapabilities'))
+            qs.append(('REQUEST', 'GetCapabilities'))
         if 'version' not in params:
-            qs.append(('version', self.version))
+            qs.append(('VERSION', self.version))
 
         urlqs = urlencode(tuple(qs))
         return service_url.split('?')[0] + '?' + urlqs
@@ -59,6 +59,7 @@ class WMSCapabilitiesReader(object):
         version, and request parameters
         """
         getcaprequest = self.capabilities_url(service_url)
+        print("CAPABILITIES URL:", getcaprequest)
 
         # now split it up again to use the generic openURL function...
         spliturl = getcaprequest.split('?')
